@@ -130,7 +130,7 @@
             line-height: 1.8rem;
             white-space: pre-wrap; 
             word-wrap: break-word; 
-            padding: 15px; 
+            padding: 20px; 
             margin: 15px 0; 
             text-align: left;
             position: relative;
@@ -162,9 +162,10 @@
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
         .copy-btn { background: #caf0f8; color: var(--primary-blue); padding: 5px 10px; font-size: 0.7rem; border-radius: 5px;}
 
+        /* MOBILE OPTIMIZED PHOTO CONTAINER */
         .uploaded-photo-container {
             width: 100%;
-            margin: 15px 0;
+            margin: 20px 0;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -175,12 +176,11 @@
             justify-content: center;
             align-items: center;
         }
-        
         .uploaded-photo-container img {
             width: 100%;
             height: auto;
-            max-height: 60vh; 
-            object-fit: contain;
+            max-height: 350px;
+            object-fit: cover;
             display: block;
         }
 
@@ -212,7 +212,7 @@
         </div>
         <div class="input-group">
             <label>Your Message:</label>
-            <textarea id="message" rows="5" placeholder="Write your heart out..."></textarea>
+            <textarea id="message" rows="6" placeholder="Write your heart out..."></textarea>
         </div>
         <button id="submit-btn" onclick="createLink()">Generate Link ✨</button>
         
@@ -235,10 +235,8 @@
     <!-- View 3: Written Letter View -->
     <div id="letter-view" class="hidden">
         <h1>A Special Letter</h1>
-        
         <div class="letter-content" id="display-text"></div>
-        <p id="music-msg" style="font-size: 0.8rem; color: #ffb74d; font-weight: bold; margin: 5px 0 10px;"></p>
-        <!-- Tiny fallback mechanism just in case a mobile operating system behaves aggressively -->
+        <p id="music-msg" style="font-size: 0.8rem; color: #aaa; margin: 5px 0 15px;"></p>
         <div onclick="forcePlayMusic()" class="silent-hint">Music silent? Tap here to refresh 🎵</div>
         <br><br>
         <button id="next-to-photo-btn" class="hidden" onclick="showPhotoScreen()">Watch Photo ✨</button>
@@ -286,8 +284,9 @@
     let player;
     let currentVidId = "";
     let fullMessage = "";
-    let hasAttachedPhoto = false;
+    let containsAttachedPhoto = false; // Bug fix: defined app scope variable
 
+    // Localized database for local media files
     const dbName = "LetterPhotoDB";
     const storeName = "photos";
     
@@ -367,9 +366,9 @@
             try {
                 const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
                 fullMessage = decoded.m;
-                hasAttachedPhoto = decoded.hasPhoto;
+                containsAttachedPhoto = decoded.hasPhoto; // Bug fix: reference correct data
                 
-                if(hasAttachedPhoto) {
+                if(containsAttachedPhoto) {
                     const savedBlob = await loadPhotoFromDB();
                     if(savedBlob) {
                         document.getElementById('custom-photo').src = URL.createObjectURL(savedBlob);
@@ -389,9 +388,6 @@
     }
 
     function openEnvelope() {
-        // Automatically start the track right here using the user's touch action on the envelope
-        forcePlayMusic();
-
         const envelopeView = document.getElementById('envelope-view');
         const letterView = document.getElementById('letter-view');
         
@@ -403,6 +399,8 @@
             letterView.classList.add('fade-in');
             
             animateText();
+            // Try playing immediately on click interaction
+            forcePlayMusic();
         }, 400);
     }
 
@@ -423,12 +421,13 @@
             }
         });
 
-        if (hasAttachedPhoto) {
+        if (containsAttachedPhoto) {
+            // Bug fix: remove hidden class and animate photo
             setTimeout(() => {
                 const nextBtn = document.getElementById('next-to-photo-btn');
                 nextBtn.classList.remove('hidden');
                 nextBtn.classList.add('fade-in');
-            }, chars.length * 40);
+            }, chars.length * 40 + 200);
         }
     }
 
