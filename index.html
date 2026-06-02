@@ -9,7 +9,7 @@
         :root { 
             --primary-blue: #0077b6;
             --soft-blue: #ade8f4;
-            --primary-yellow: #fff3b0;
+            --primary-yellow: #fffcd4; 
             --bg-pattern: #fdfae7;
             --text-color: #333; 
             --accent-pink: #ffafcc;
@@ -56,20 +56,21 @@
 
         .container { 
             background: var(--primary-yellow); 
-            padding: 2.5rem; 
+            padding: 2.5rem 1.5rem; 
             border-radius: 30px; 
-            box-shadow: 0 10px 40px rgba(0, 119, 182, 0.2); 
+            box-shadow: 0 15px 45px rgba(0, 119, 182, 0.25); 
             width: 90%; 
             max-width: 450px; 
             text-align: center; 
-            border: 6px solid #f9eb95;
+            border: 6px solid #fdf2a9;
             position: relative;
             z-index: 10;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
         }
 
         h1::after { content: ' 🎀'; font-family: initial; font-size: 1.5rem; }
-        h1 { font-family: 'Pacifico', cursive; color: var(--primary-blue); font-size: 2.2rem; margin: 0 0 1rem; }
+        h1 { font-family: 'Pacifico', cursive; color: var(--primary-blue); font-size: 2rem; margin: 0 0 1rem; line-height: 1.3; }
         
         .input-group { margin-bottom: 1rem; text-align: left; }
         label { color: var(--primary-blue); font-weight: bold; font-size: 0.9rem; display: block; margin-bottom: 5px; }
@@ -88,6 +89,7 @@
         input[type="file"] {
             font-family: inherit;
             font-size: 0.85rem;
+            width: 100%;
         }
 
         button { 
@@ -124,11 +126,11 @@
         }
 
         .letter-content { 
-            font-size: 1.1rem; 
+            font-size: 1.05rem; 
             line-height: 1.8rem;
             white-space: pre-wrap; 
             word-wrap: break-word; 
-            padding: 20px; 
+            padding: 15px; 
             margin: 15px 0; 
             text-align: left;
             position: relative;
@@ -137,6 +139,8 @@
             background-size: 100% 1.8rem;
             border: 2px dashed var(--soft-blue);
             border-radius: 15px;
+            max-height: 250px;
+            overflow-y: auto;
         }
 
         .char {
@@ -154,23 +158,30 @@
         .envelope-wrapper:hover { transform: scale(1.1) rotate(2deg); }
         .envelope-icon { font-size: 80px; display: block; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
 
-        .history-section { margin-top: 30px; width: 90%; max-width: 450px; background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--soft-blue); z-index: 10; }
+        .history-section { margin-top: 30px; width: 90%; max-width: 450px; background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--soft-blue); z-index: 10; box-sizing: border-box; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
         .copy-btn { background: #caf0f8; color: var(--primary-blue); padding: 5px 10px; font-size: 0.7rem; border-radius: 5px;}
 
-        .uploaded-video-container {
+        .uploaded-photo-container {
             width: 100%;
-            margin: 20px 0;
-            border-radius: 15px;
+            margin: 15px 0;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            background: #000;
-            aspect-ratio: 16 / 9;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            background: #fff;
+            border: 5px solid white;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .uploaded-video-container video {
+        
+        .uploaded-photo-container img {
             width: 100%;
-            height: 100%;
+            height: auto;
+            max-height: 60vh; 
             object-fit: contain;
+            display: block;
         }
 
         #status-log {
@@ -181,6 +192,7 @@
         }
 
         #player { position: absolute; top: -999px; visibility: hidden; }
+        .silent-hint { font-size: 0.7rem; color: #aaa; text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -194,13 +206,13 @@
             <input type="text" id="yt-link" placeholder="Paste link here...">
         </div>
         <div class="input-group">
-            <label>Upload a Video File (2-3 mins length supported!):</label>
-            <input type="file" id="video-file" accept="video/*">
+            <label>Upload a Sweet Photo Layout:</label>
+            <input type="file" id="photo-file" accept="image/*">
             <div id="status-log"></div>
         </div>
         <div class="input-group">
             <label>Your Message:</label>
-            <textarea id="message" rows="6" placeholder="Write your heart out..."></textarea>
+            <textarea id="message" rows="5" placeholder="Write your heart out..."></textarea>
         </div>
         <button id="submit-btn" onclick="createLink()">Generate Link ✨</button>
         
@@ -213,6 +225,7 @@
     <!-- View 2: Envelope Cover Layout -->
     <div id="envelope-view" class="hidden">
         <h1>You have a letter!</h1>
+        <!-- Tapping this envelope fulfills browser security requirements to automatically trigger background audio tracks -->
         <div class="envelope-wrapper" id="envelope-anim" onclick="openEnvelope()">
             <span class="envelope-icon">✉️</span>
             <p style="color: var(--primary-blue);"><strong>Click the envelope to open</strong></p>
@@ -222,17 +235,20 @@
     <!-- View 3: Written Letter View -->
     <div id="letter-view" class="hidden">
         <h1>A Special Letter</h1>
-        <div class="letter-content" id="display-text"></div>
-        <p id="music-msg" style="font-size: 0.8rem; color: #aaa; margin-top: 5px; margin-bottom: 15px;"></p>
         
-        <button id="next-to-video-btn" class="hidden" onclick="showVideoScreen()">Watch Video ✨</button>
+        <div class="letter-content" id="display-text"></div>
+        <p id="music-msg" style="font-size: 0.8rem; color: #ffb74d; font-weight: bold; margin: 5px 0 10px;"></p>
+        <!-- Tiny fallback mechanism just in case a mobile operating system behaves aggressively -->
+        <div onclick="forcePlayMusic()" class="silent-hint">Music silent? Tap here to refresh 🎵</div>
+        <br><br>
+        <button id="next-to-photo-btn" class="hidden" onclick="showPhotoScreen()">Watch Photo ✨</button>
     </div>
 
-    <!-- View 4: Video player screen layout -->
-    <div id="video-view" class="hidden">
-        <h1>A Special Video for You</h1>
-        <div class="uploaded-video-container">
-            <video id="custom-video" controls playsinline></video>
+    <!-- View 4: Photo View Screen Layout -->
+    <div id="photo-view" class="hidden">
+        <h1>A Special Photo for You</h1>
+        <div class="uploaded-photo-container">
+            <img id="custom-photo" alt="Attached Memory">
         </div>
         <br>
         <button onclick="location.href=location.pathname" style="background: var(--soft-blue); color: var(--primary-blue); font-size: 0.8rem;">Make Your Own</button>
@@ -270,11 +286,10 @@
     let player;
     let currentVidId = "";
     let fullMessage = "";
-    let hasAttachedVideo = false;
+    let hasAttachedPhoto = false;
 
-    // Setup an IndexedDB instance to manage heavy video uploads safely
-    const dbName = "LetterVideoDB";
-    const storeName = "videos";
+    const dbName = "LetterPhotoDB";
+    const storeName = "photos";
     
     function openDatabase() {
         return new Promise((resolve, reject) => {
@@ -290,25 +305,25 @@
         });
     }
 
-    async function saveVideoToDB(blobData) {
+    async function savePhotoToDB(blobData) {
         const db = await openDatabase();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([storeName], "readwrite");
             const store = transaction.objectStore(storeName);
-            const request = store.put(blobData, "attached_video_file");
+            const request = store.put(blobData, "attached_photo_file");
             request.onsuccess = () => resolve();
-            request.onerror = () => reject("Failed saving blob.");
+            request.onerror = () => reject("Failed saving photo.");
         });
     }
 
-    async function loadVideoFromDB() {
+    async function loadPhotoFromDB() {
         const db = await openDatabase();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([storeName], "readonly");
             const store = transaction.objectStore(storeName);
-            const request = store.get("attached_video_file");
+            const request = store.get("attached_photo_file");
             request.onsuccess = (e) => resolve(e.target.result);
-            request.onerror = () => reject("Failed finding blob.");
+            request.onerror = () => reject("Failed finding photo.");
         });
     }
 
@@ -333,7 +348,7 @@
                 if(currentVidId) {
                     player = new YT.Player('player', {
                         height: '0', width: '0', videoId: currentVidId,
-                        playerVars: { 'autoplay': 1, 'mute': 1, 'playlist': currentVidId, 'loop': 1 },
+                        playerVars: { 'autoplay': 1, 'mute': 1, 'playlist': currentVidId, 'loop': 1, 'controls': 0 },
                         events: { 'onReady': (e) => { e.target.playVideo(); } }
                     });
                 }
@@ -352,20 +367,31 @@
             try {
                 const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
                 fullMessage = decoded.m;
-                hasAttachedVideo = decoded.hasVideo;
+                hasAttachedPhoto = decoded.hasPhoto;
                 
-                if(hasAttachedVideo) {
-                    const savedBlob = await loadVideoFromDB();
+                if(hasAttachedPhoto) {
+                    const savedBlob = await loadPhotoFromDB();
                     if(savedBlob) {
-                        // Dynamically reference the binary file instead of strings
-                        document.getElementById('custom-video').src = URL.createObjectURL(savedBlob);
+                        document.getElementById('custom-photo').src = URL.createObjectURL(savedBlob);
                     }
                 }
             } catch(e) { document.getElementById('display-text').innerText = "Broken link! 😿"; }
         }
     }
 
+    function forcePlayMusic() {
+        if (player && typeof player.playVideo === 'function') {
+            player.unMute();
+            player.setVolume(100);
+            player.playVideo();
+            document.getElementById('music-msg').innerText = "🎵 Playing Sweet Melodies...";
+        }
+    }
+
     function openEnvelope() {
+        // Automatically start the track right here using the user's touch action on the envelope
+        forcePlayMusic();
+
         const envelopeView = document.getElementById('envelope-view');
         const letterView = document.getElementById('letter-view');
         
@@ -377,12 +403,6 @@
             letterView.classList.add('fade-in');
             
             animateText();
-
-            if (player && player.unMute) {
-                player.unMute();
-                player.playVideo();
-                document.getElementById('music-msg').innerText = "🎵 Music playing...";
-            }
         }, 400);
     }
 
@@ -403,37 +423,34 @@
             }
         });
 
-        if (hasAttachedVideo) {
+        if (hasAttachedPhoto) {
             setTimeout(() => {
-                const nextBtn = document.getElementById('next-to-video-btn');
+                const nextBtn = document.getElementById('next-to-photo-btn');
                 nextBtn.classList.remove('hidden');
                 nextBtn.classList.add('fade-in');
             }, chars.length * 40);
         }
     }
 
-    function showVideoScreen() {
+    function showPhotoScreen() {
+        forcePlayMusic();
+
         const letterView = document.getElementById('letter-view');
-        const videoView = document.getElementById('video-view');
+        const photoView = document.getElementById('photo-view');
         
         letterView.classList.add('fade-out');
         
         setTimeout(() => {
             letterView.classList.add('hidden');
-            videoView.classList.remove('hidden');
-            videoView.classList.add('fade-in');
-            
-            const customVid = document.getElementById('custom-video');
-            if(customVid.src) {
-                customVid.play().catch(e => console.log("Video auto-play blocked."));
-            }
+            photoView.classList.remove('hidden');
+            photoView.classList.add('fade-in');
         }, 400);
     }
 
     async function createLink() {
         const msg = document.getElementById('message').value;
         const yt = document.getElementById('yt-link').value;
-        const fileInput = document.getElementById('video-file');
+        const fileInput = document.getElementById('photo-file');
         const submitBtn = document.getElementById('submit-btn');
         const statusLog = document.getElementById('status-log');
         
@@ -441,8 +458,8 @@
         
         const vidId = yt.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
         
-        const generateAndPack = (hasVideoFlag) => {
-            const data = { m: msg, v: vidId ? vidId[1] : "", hasVideo: hasVideoFlag };
+        const generateAndPack = (hasPhotoFlag) => {
+            const data = { m: msg, v: vidId ? vidId[1] : "", hasPhoto: hasPhotoFlag };
             const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
             const link = window.location.origin + window.location.pathname + "?l=" + encoded;
             
@@ -450,7 +467,6 @@
             document.getElementById('share-url').value = link;
             saveToHistory(msg.substring(0, 20) + "...", link);
             
-            // Restore form layout state
             submitBtn.disabled = false;
             submitBtn.innerText = "Generate Link ✨";
             statusLog.innerText = "";
@@ -460,20 +476,19 @@
             const file = fileInput.files[0];
             
             submitBtn.disabled = true;
-            submitBtn.innerText = "Processing Video... Please Wait ⏳";
+            submitBtn.innerText = "Processing Photo... ⏳";
             statusLog.style.color = "#0077b6";
-            statusLog.innerText = "Saving video file cleanly inside browser base memory module...";
+            statusLog.innerText = "Saving image layout safely inside application storage...";
 
             try {
-                // Save directly as an raw high-capacity Blob payload instead of bloated text strings
-                await saveVideoToDB(file);
+                await savePhotoToDB(file);
                 generateAndPack(true);
             } catch(err) {
                 statusLog.style.color = "#d62828";
                 statusLog.innerText = "Storage failure handling file.";
                 submitBtn.disabled = false;
                 submitBtn.innerText = "Generate Link ✨";
-                alert("Something went wrong saving the video into database storage. Please try a smaller video clip layout. 😿");
+                alert("Something went wrong saving the photo layout module. 😿");
             }
         } else {
             generateAndPack(false);
@@ -509,12 +524,9 @@
     function clearHistory() {
         if(confirm("Delete all saved letters?")) {
             localStorage.removeItem('letterHistory');
-            
-            // Wipe out IndexedDB records completely
             indexedDB.deleteDatabase(dbName);
-            
             displayHistory();
-            document.getElementById('custom-video').src = "";
+            document.getElementById('custom-photo').src = "";
         }
     }
 </script>
