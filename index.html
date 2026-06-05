@@ -162,7 +162,6 @@
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
         .copy-btn { background: #caf0f8; color: var(--primary-blue); padding: 5px 10px; font-size: 0.7rem; border-radius: 5px;}
 
-        /* MOBILE OPTIMIZED PHOTO CONTAINER */
         .uploaded-photo-container {
             width: 100%;
             margin: 20px 0;
@@ -198,7 +197,6 @@
 <body>
 
 <div class="container" id="main-card">
-    <!-- View 1: Letter Form Maker -->
     <div id="maker-view">
         <h1>Kyutie E-Letter para sayo &lt;3 </h1>
         <div class="input-group">
@@ -222,17 +220,14 @@
         </div>
     </div>
 
-    <!-- View 2: Envelope Cover Layout -->
     <div id="envelope-view" class="hidden">
         <h1>You have a letter!</h1>
-        <!-- Tapping this envelope fulfills browser security requirements to automatically trigger background audio tracks -->
         <div class="envelope-wrapper" id="envelope-anim" onclick="openEnvelope()">
             <span class="envelope-icon">✉️</span>
             <p style="color: var(--primary-blue);"><strong>Click the envelope to open</strong></p>
         </div>
     </div>
 
-    <!-- View 3: Written Letter View -->
     <div id="letter-view" class="hidden">
         <h1>A Special Letter</h1>
         <div class="letter-content" id="display-text"></div>
@@ -242,7 +237,6 @@
         <button id="next-to-photo-btn" class="hidden" onclick="showPhotoScreen()">Watch Photo ✨</button>
     </div>
 
-    <!-- View 4: Photo View Screen Layout -->
     <div id="photo-view" class="hidden">
         <h1>A Special Photo for You</h1>
         <div class="uploaded-photo-container">
@@ -284,47 +278,7 @@
     let player;
     let currentVidId = "";
     let fullMessage = "";
-    let containsAttachedPhoto = false; // Bug fix: defined app scope variable
-
-    // Localized database for local media files
-    const dbName = "LetterPhotoDB";
-    const storeName = "photos";
-    
-    function openDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(dbName, 1);
-            request.onupgradeneeded = function(e) {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains(storeName)) {
-                    db.createObjectStore(storeName);
-                }
-            };
-            request.onsuccess = function(e) { resolve(e.target.result); };
-            request.onerror = function(e) { reject("IndexedDB connection failed."); };
-        });
-    }
-
-    async function savePhotoToDB(blobData) {
-        const db = await openDatabase();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction([storeName], "readwrite");
-            const store = transaction.objectStore(storeName);
-            const request = store.put(blobData, "attached_photo_file");
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject("Failed saving photo.");
-        });
-    }
-
-    async function loadPhotoFromDB() {
-        const db = await openDatabase();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction([storeName], "readonly");
-            const store = transaction.objectStore(storeName);
-            const request = store.get("attached_photo_file");
-            request.onsuccess = (e) => resolve(e.target.result);
-            request.onerror = () => reject("Failed finding photo.");
-        });
-    }
+    let base64PhotoData = ""; // Photo data stored globally as string
 
     function createHeart() {
         const heart = document.createElement('div');
@@ -355,7 +309,7 @@
         }
     }
 
-    window.onload = async function() {
+    window.onload = function() {
         displayHistory();
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
@@ -366,13 +320,11 @@
             try {
                 const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
                 fullMessage = decoded.m;
-                containsAttachedPhoto = decoded.hasPhoto; // Bug fix: reference correct data
                 
-                if(containsAttachedPhoto) {
-                    const savedBlob = await loadPhotoFromDB();
-                    if(savedBlob) {
-                        document.getElementById('custom-photo').src = URL.createObjectURL(savedBlob);
-                    }
+                // If photo string exists in the URL payload, apply it directly to the img src attribute
+                if(decoded.imgData) {
+                    base64PhotoData = decoded.imgData;
+                    document.getElementById('custom-photo').src = base64PhotoData;
                 }
             } catch(e) { document.getElementById('display-text').innerText = "Broken link! 😿"; }
         }
@@ -399,7 +351,6 @@
             letterView.classList.add('fade-in');
             
             animateText();
-            // Try playing immediately on click interaction
             forcePlayMusic();
         }, 400);
     }
@@ -421,8 +372,7 @@
             }
         });
 
-        if (containsAttachedPhoto) {
-            // Bug fix: remove hidden class and animate photo
+        if (base64PhotoData) {
             setTimeout(() => {
                 const nextBtn = document.getElementById('next-to-photo-btn');
                 nextBtn.classList.remove('hidden');
@@ -433,7 +383,6 @@
 
     function showPhotoScreen() {
         forcePlayMusic();
-
         const letterView = document.getElementById('letter-view');
         const photoView = document.getElementById('photo-view');
         
@@ -444,6 +393,16 @@
             photoView.classList.remove('hidden');
             photoView.classList.add('fade-in');
         }, 400);
+    }
+
+    // Helper utility to convert file streams to web URLs directly via base64 data strings
+    function convertFileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
     }
 
     async function createLink() {
@@ -457,41 +416,36 @@
         
         const vidId = yt.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
         
-        const generateAndPack = (hasPhotoFlag) => {
-            const data = { m: msg, v: vidId ? vidId[1] : "", hasPhoto: hasPhotoFlag };
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            const link = window.location.origin + window.location.pathname + "?l=" + encoded;
-            
-            document.getElementById('result-section').classList.remove('hidden');
-            document.getElementById('share-url').value = link;
-            saveToHistory(msg.substring(0, 20) + "...", link);
-            
-            submitBtn.disabled = false;
-            submitBtn.innerText = "Generate Link ✨";
-            statusLog.innerText = "";
-        };
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Generating Link... ⏳";
+        
+        let photoPayload = "";
 
         if(fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Processing Photo... ⏳";
             statusLog.style.color = "#0077b6";
-            statusLog.innerText = "Saving image layout safely inside application storage...";
-
+            statusLog.innerText = "Encoding sweet photo into your link package...";
             try {
-                await savePhotoToDB(file);
-                generateAndPack(true);
+                // Turn the picture file directly into a text string
+                photoPayload = await convertFileToBase64(fileInput.files[0]);
             } catch(err) {
-                statusLog.style.color = "#d62828";
-                statusLog.innerText = "Storage failure handling file.";
+                alert("Failed processing photo module.");
                 submitBtn.disabled = false;
-                submitBtn.innerText = "Generate Link ✨";
-                alert("Something went wrong saving the photo layout module. 😿");
+                return;
             }
-        } else {
-            generateAndPack(false);
         }
+
+        // Pack EVERYTHING inside the URL object
+        const data = { m: msg, v: vidId ? vidId[1] : "", imgData: photoPayload };
+        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+        const link = window.location.origin + window.location.pathname + "?l=" + encoded;
+        
+        document.getElementById('result-section').classList.remove('hidden');
+        document.getElementById('share-url').value = link;
+        saveToHistory(msg.substring(0, 20) + "...", link);
+        
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Generate Link ✨";
+        statusLog.innerText = "";
     }
 
     function saveToHistory(label, url) {
@@ -523,7 +477,6 @@
     function clearHistory() {
         if(confirm("Delete all saved letters?")) {
             localStorage.removeItem('letterHistory');
-            indexedDB.deleteDatabase(dbName);
             displayHistory();
             document.getElementById('custom-photo').src = "";
         }
