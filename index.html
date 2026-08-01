@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hi Siopao, Happy Girlfriend Day ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <!-- LZString Compression Library for short URLs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
         :root { 
             --primary-yellow: #fff3b0;
@@ -444,6 +446,21 @@
     let fullMessage = "";
     let isPlayerReady = false;
 
+    // Helper function to decode link (handles LZString compression and legacy Base64)
+    function decodeData(dataRaw) {
+        try {
+            // First try decompressing via LZString
+            const decompressed = LZString.decompressFromEncodedURIComponent(dataRaw);
+            if (decompressed) {
+                return JSON.parse(decompressed);
+            }
+            // Fallback for older legacy base64 links
+            return JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
+        } catch(e) {
+            return null;
+        }
+    }
+
     // Floating Hearts Animation
     function createHeart() {
         const heart = document.createElement('div');
@@ -461,8 +478,8 @@
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
         if(dataRaw) {
-            try {
-                const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
+            const decoded = decodeData(dataRaw);
+            if(decoded) {
                 currentVidId = decoded.v;
                 if(currentVidId) {
                     player = new YT.Player('player', {
@@ -476,7 +493,7 @@
                         }
                     });
                 }
-            } catch(e) {}
+            }
         }
     }
 
@@ -488,10 +505,13 @@
             document.getElementById('maker-view').classList.add('hidden');
             document.getElementById('history-box').classList.add('hidden');
             document.getElementById('choice-view').classList.remove('hidden');
-            try {
-                const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
+            
+            const decoded = decodeData(dataRaw);
+            if(decoded && decoded.m) {
                 fullMessage = decoded.m;
-            } catch(e) { document.getElementById('display-text').innerText = "Broken link! 😿"; }
+            } else { 
+                document.getElementById('display-text').innerText = "Broken link! 😿"; 
+            }
         }
     }
 
@@ -519,7 +539,7 @@
     }
 
     function handleYes() {
-        startMusic(); // Triggers music unmute on user click
+        startMusic();
         const choiceView = document.getElementById('choice-view');
         const envelopeView = document.getElementById('envelope-view');
         
@@ -532,28 +552,23 @@
     }
 
     function openEnvelope() {
-        startMusic(); // Backup trigger in case YouTube loaded late
+        startMusic();
         const envelopeView = document.getElementById('envelope-view');
         const letterView = document.getElementById('letter-view');
         const sfOverlay = document.getElementById('sf-overlay');
         
-        // Step 1: Bloom sunflower over entire screen
         sfOverlay.classList.remove('shrink');
         sfOverlay.classList.add('active');
 
         setTimeout(() => {
-            // Step 2: Switch views in background while screen is covered
             envelopeView.classList.add('hidden');
             letterView.classList.remove('hidden');
             
-            // Step 3: Shrink sunflower to reveal the letter
             sfOverlay.classList.add('shrink');
             sfOverlay.classList.remove('active');
 
-            // Step 4: Animate text inside letter
             animateText();
 
-            // Clean up overlay classes
             setTimeout(() => {
                 sfOverlay.classList.remove('shrink');
             }, 1000);
@@ -576,17 +591,38 @@
         });
     }
 
-    function createLink() {
+    async function createLink() {
         const msg = document.getElementById('message').value;
         const yt = document.getElementById('yt-link').value;
         if(!msg) return alert("Write a message! 🌸");
+
         const vidId = yt.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
         const data = { m: msg, v: vidId ? vidId[1] : "" };
-        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-        const link = window.location.origin + window.location.pathname + "?l=" + encoded;
+
+        // 1. Compress text using LZString to keep URL compact
+        const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+        const fullLink = window.location.origin + window.location.pathname + "?l=" + compressed;
+
+        const shareInput = document.getElementById('share-url');
         document.getElementById('result-section').classList.remove('hidden');
-        document.getElementById('share-url').value = link;
-        saveToHistory(msg.substring(0, 20) + "...", link);
+        shareInput.value = "Shortening link... ✨";
+
+        // 2. Automatically shorten via TinyURL API
+        try {
+            const res = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullLink)}`);
+            if (res.ok) {
+                const shortUrl = await res.text();
+                shareInput.value = shortUrl;
+                saveToHistory(msg.substring(0, 20) + "...", shortUrl);
+                return;
+            }
+        } catch(e) {
+            console.log("TinyURL API error, using compressed URL fallback", e);
+        }
+
+        // Fallback to compressed link if network/API fails
+        shareInput.value = fullLink;
+        saveToHistory(msg.substring(0, 20) + "...", fullLink);
     }
 
     function saveToHistory(label, url) {
