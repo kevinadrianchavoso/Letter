@@ -17,7 +17,6 @@
         }
         
         body { 
-            /* Animated Scenery Background */
             background: linear-gradient(-45deg, #ffccd5, #ffb3c1, #ffec99, #fff0f5);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -39,7 +38,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Animated Scenery Elements: Floating Clouds */
         .cloud {
             position: fixed;
             background: rgba(255, 255, 255, 0.45);
@@ -155,25 +153,13 @@
             background: var(--deep-red); 
         }
 
-        .btn-yes {
-            background-color: var(--accent-red);
-        }
-
-        .btn-yes:hover {
-            background-color: var(--deep-red);
-        }
-
-        .btn-no {
-            background-color: #a0a0a0;
-        }
-
-        .btn-no:hover {
-            background-color: #888888;
-        }
+        .btn-yes { background-color: var(--accent-red); }
+        .btn-yes:hover { background-color: var(--deep-red); }
+        .btn-no { background-color: #a0a0a0; }
+        .btn-no:hover { background-color: #888888; }
         
         .hidden { display: none !important; }
         
-        /* Smooth Transitions */
         .fade-out { opacity: 0; transform: scale(0.9); pointer-events: none; }
         .fade-in { animation: slideUp 0.8s ease forwards; }
 
@@ -196,12 +182,13 @@
             background-size: 100% 1.8rem;
             border: 2px dashed var(--primary-pink);
             border-radius: 15px;
+            min-height: 100px;
         }
 
         .char {
             display: inline;
             opacity: 0;
-            animation: letter-pop 0.4s forwards;
+            animation: letter-pop 0.3s forwards;
         }
 
         @keyframes letter-pop {
@@ -226,14 +213,10 @@
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ffe5ec; font-size: 0.8rem; }
         .copy-btn { background: #ffe5ec; color: var(--deep-red); padding: 5px 10px; font-size: 0.7rem; border-radius: 5px;}
 
-        /* Modal for "No" */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(74, 21, 37, 0.4);
             z-index: 100;
             justify-content: center;
@@ -269,13 +252,9 @@
             50% { transform: scale(1.15) rotate(-3deg); }
         }
 
-        /* Sunflower Transition Overlay */
         .sunflower-transition-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             z-index: 9999;
             pointer-events: none;
             display: flex;
@@ -285,8 +264,7 @@
         }
 
         .sunflower-transition-svg {
-            width: 180vmax;
-            height: 180vmax;
+            width: 180vmax; height: 180vmax;
             transform: scale(0) rotate(0deg);
             opacity: 0;
             transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.3s ease;
@@ -302,12 +280,11 @@
             opacity: 0;
         }
 
-        #player { position: absolute; top: -999px; visibility: hidden; }
+        #player { position: absolute; top: -999px; left: -999px; visibility: hidden; }
     </style>
 </head>
 <body>
 
-<!-- Animated Scenery Clouds -->
 <div class="cloud cloud1"></div>
 <div class="cloud cloud2"></div>
 
@@ -317,7 +294,7 @@
         <h1>Hi Siopao, Happy Girlfriend Day</h1>
         <div class="input-group">
             <label>YouTube Link (Music):</label>
-            <input type="text" id="yt-link" placeholder="Paste link here...">
+            <input type="text" id="yt-link" placeholder="Paste YouTube video link...">
         </div>
         <div class="input-group">
             <label>Your Message:</label>
@@ -325,7 +302,7 @@
         </div>
         <button onclick="createLink()">Generate Link ✨</button>
         <div id="result-section" class="hidden">
-            <p style="font-size: 0.8rem; margin: 10px 0 0; color: var(--deep-red);"><strong>Link Created!</strong></p>
+            <p style="font-size: 0.8rem; margin: 10px 0 0; color: var(--deep-red);"><strong>Link Created! Copy & send this:</strong></p>
             <input type="text" id="share-url" readonly onclick="this.select()" style="margin-top: 5px; font-size: 0.7rem;">
         </div>
     </div>
@@ -425,10 +402,8 @@
 <div id="noModal" class="modal-overlay">
     <div class="modal-content">
         <h3 style="color: var(--deep-red); margin-top:0;">Please? 🥺</h3>
-        <div class="emoji-container">
-            🥺
-        </div>
-        <p id="begText" style="font-size: 0.9rem; color: var(--text-color);">Are you really sure? Please open it!</p>
+        <div class="emoji-container">🥺</div>
+        <p style="font-size: 0.9rem; color: var(--text-color);">Are you really sure? Please open it!</p>
         <div class="btn-group">
             <button class="btn-yes" onclick="closeModalAndProceed()">Okay fine, Yes! 💖</button>
         </div>
@@ -456,27 +431,41 @@
     }
     setInterval(createHeart, 400);
 
-    // YouTube API Setup
+    // Safe Base64 Encoding/Decoding
+    function safeBtoa(str) {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+    }
+
+    function safeAtob(str) {
+        try {
+            return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        } catch (e) {
+            return atob(str); 
+        }
+    }
+
+    // YouTube API Handler
     function onYouTubeIframeAPIReady() {
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
-        if(dataRaw) {
+        if (dataRaw) {
             try {
-                const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
+                const decoded = JSON.parse(safeAtob(dataRaw));
                 currentVidId = decoded.v;
-                if(currentVidId) {
+                if (currentVidId) {
                     player = new YT.Player('player', {
                         height: '0', width: '0', videoId: currentVidId,
-                        playerVars: { 'autoplay': 1, 'mute': 1, 'playlist': currentVidId, 'loop': 1, 'enablejsapi': 1 },
+                        playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': currentVidId, 'enablejsapi': 1 },
                         events: { 
                             'onReady': (e) => { 
-                                isPlayerReady = true;
+                                isPlayerReady = true; 
+                                e.target.mute(); 
                                 e.target.playVideo(); 
                             } 
                         }
                     });
                 }
-            } catch(e) {}
+            } catch(e) { console.log("Player init error:", e); }
         }
     }
 
@@ -484,16 +473,30 @@
         displayHistory();
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
-        if(dataRaw) {
+        if (dataRaw) {
             document.getElementById('maker-view').classList.add('hidden');
             document.getElementById('history-box').classList.add('hidden');
             document.getElementById('choice-view').classList.remove('hidden');
             try {
-                const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
-                fullMessage = decoded.m;
-            } catch(e) { document.getElementById('display-text').innerText = "Broken link! 😿"; }
+                const decoded = JSON.parse(safeAtob(dataRaw));
+                fullMessage = decoded.m || "No message found! 💕";
+            } catch(e) { 
+                fullMessage = "Hello! Missing message or broken link. 💕"; 
+            }
         }
     }
+
+    // Force unlock audio playback on user click
+    document.addEventListener('click', function unlockAudio() {
+        if (player && isPlayerReady) {
+            try {
+                player.unMute();
+                player.setVolume(100);
+                player.playVideo();
+                document.getElementById('music-msg').innerText = "🎵 Playing background music...";
+            } catch(e) {}
+        }
+    }, { once: false });
 
     function startMusic() {
         if (player && isPlayerReady) {
@@ -501,16 +504,13 @@
                 player.unMute();
                 player.setVolume(100);
                 player.playVideo();
-                document.getElementById('music-msg').innerText = "🎵 Music playing...";
-            } catch(e) {
-                console.log("Audio play error:", e);
-            }
+                document.getElementById('music-msg').innerText = "🎵 Playing background music...";
+            } catch(e) {}
         }
     }
 
     function handleNo() {
-        const modal = document.getElementById('noModal');
-        modal.style.display = 'flex';
+        document.getElementById('noModal').style.display = 'flex';
     }
 
     function closeModalAndProceed() {
@@ -519,7 +519,7 @@
     }
 
     function handleYes() {
-        startMusic(); // Triggers music unmute on user click
+        startMusic();
         const choiceView = document.getElementById('choice-view');
         const envelopeView = document.getElementById('envelope-view');
         
@@ -532,28 +532,23 @@
     }
 
     function openEnvelope() {
-        startMusic(); // Backup trigger in case YouTube loaded late
+        startMusic();
         const envelopeView = document.getElementById('envelope-view');
         const letterView = document.getElementById('letter-view');
         const sfOverlay = document.getElementById('sf-overlay');
         
-        // Step 1: Bloom sunflower over entire screen
         sfOverlay.classList.remove('shrink');
         sfOverlay.classList.add('active');
 
         setTimeout(() => {
-            // Step 2: Switch views in background while screen is covered
             envelopeView.classList.add('hidden');
             letterView.classList.remove('hidden');
             
-            // Step 3: Shrink sunflower to reveal the letter
             sfOverlay.classList.add('shrink');
             sfOverlay.classList.remove('active');
 
-            // Step 4: Animate text inside letter
             animateText();
 
-            // Clean up overlay classes
             setTimeout(() => {
                 sfOverlay.classList.remove('shrink');
             }, 1000);
@@ -563,6 +558,8 @@
     function animateText() {
         const container = document.getElementById('display-text');
         container.innerHTML = ""; 
+        if(!fullMessage) return;
+
         fullMessage.split("").forEach((char, index) => {
             if (char === "\n") {
                 container.appendChild(document.createElement('br'));
@@ -570,7 +567,7 @@
                 const span = document.createElement('span');
                 span.innerText = char;
                 span.classList.add('char');
-                span.style.animationDelay = `${index * 0.04}s`; 
+                span.style.animationDelay = `${index * 0.03}s`; 
                 container.appendChild(span);
             }
         });
@@ -579,11 +576,19 @@
     function createLink() {
         const msg = document.getElementById('message').value;
         const yt = document.getElementById('yt-link').value;
-        if(!msg) return alert("Write a message! 🌸");
-        const vidId = yt.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        const data = { m: msg, v: vidId ? vidId[1] : "" };
-        const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+        if(!msg) return alert("Please write a message first! 🌸");
+
+        let vidId = "";
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = yt.match(regExp);
+        if (match && match[2].length === 11) {
+            vidId = match[2];
+        }
+
+        const data = { m: msg, v: vidId };
+        const encoded = safeBtoa(JSON.stringify(data));
         const link = window.location.origin + window.location.pathname + "?l=" + encoded;
+        
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('share-url').value = link;
         saveToHistory(msg.substring(0, 20) + "...", link);
