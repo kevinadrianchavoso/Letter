@@ -298,7 +298,7 @@
         </div>
         <div class="input-group">
             <label>Your Message:</label>
-            <textarea id="message" rows="6" placeholder="Write your heart out..."></textarea>
+            <textarea id="message" rows="6" placeholder="Write your heart out... (Emojis supported! 😊✨)"></textarea>
         </div>
         <button onclick="createLink()">Generate Link ✨</button>
         <div id="result-section" class="hidden">
@@ -431,41 +431,59 @@
     }
     setInterval(createHeart, 400);
 
-    // Safe Base64 Encoding/Decoding
-    function safeBtoa(str) {
-        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+    // Emoji & Unicode Safe Base64 Helpers
+    function encodeData(str) {
+        const bytes = new TextEncoder().encode(str);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
-    function safeAtob(str) {
+    function decodeData(str) {
         try {
-            return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new TextDecoder().decode(bytes);
         } catch (e) {
-            return atob(str); 
+            console.error("Decoding error:", e);
+            return null;
         }
     }
 
-    // YouTube API Handler
+    // YouTube API Setup
     function onYouTubeIframeAPIReady() {
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
         if (dataRaw) {
-            try {
-                const decoded = JSON.parse(safeAtob(dataRaw));
-                currentVidId = decoded.v;
-                if (currentVidId) {
-                    player = new YT.Player('player', {
-                        height: '0', width: '0', videoId: currentVidId,
-                        playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': currentVidId, 'enablejsapi': 1 },
-                        events: { 
-                            'onReady': (e) => { 
-                                isPlayerReady = true; 
-                                e.target.mute(); 
-                                e.target.playVideo(); 
-                            } 
-                        }
-                    });
-                }
-            } catch(e) { console.log("Player init error:", e); }
+            const decodedStr = decodeData(dataRaw);
+            if (decodedStr) {
+                try {
+                    const decoded = JSON.parse(decodedStr);
+                    currentVidId = decoded.v;
+                    if (currentVidId) {
+                        player = new YT.Player('player', {
+                            height: '0', width: '0', videoId: currentVidId,
+                            playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': currentVidId, 'enablejsapi': 1 },
+                            events: { 
+                                'onReady': (e) => { 
+                                    isPlayerReady = true; 
+                                    e.target.mute(); 
+                                    e.target.playVideo(); 
+                                } 
+                            }
+                        });
+                    }
+                } catch(e) { console.error("Player setup error:", e); }
+            }
         }
     }
 
@@ -477,26 +495,20 @@
             document.getElementById('maker-view').classList.add('hidden');
             document.getElementById('history-box').classList.add('hidden');
             document.getElementById('choice-view').classList.remove('hidden');
-            try {
-                const decoded = JSON.parse(safeAtob(dataRaw));
-                fullMessage = decoded.m || "No message found! 💕";
-            } catch(e) { 
-                fullMessage = "Hello! Missing message or broken link. 💕"; 
+            
+            const decodedStr = decodeData(dataRaw);
+            if (decodedStr) {
+                try {
+                    const decoded = JSON.parse(decodedStr);
+                    fullMessage = decoded.m || "No message provided 💕";
+                } catch(e) {
+                    fullMessage = decodedStr; // Fallback if plain text string
+                }
+            } else {
+                fullMessage = "Hi Siopao! Missing message or broken link 💕";
             }
         }
     }
-
-    // Force unlock audio playback on user click
-    document.addEventListener('click', function unlockAudio() {
-        if (player && isPlayerReady) {
-            try {
-                player.unMute();
-                player.setVolume(100);
-                player.playVideo();
-                document.getElementById('music-msg').innerText = "🎵 Playing background music...";
-            } catch(e) {}
-        }
-    }, { once: false });
 
     function startMusic() {
         if (player && isPlayerReady) {
@@ -560,7 +572,10 @@
         container.innerHTML = ""; 
         if(!fullMessage) return;
 
-        fullMessage.split("").forEach((char, index) => {
+        // Spread operator [...] properly splits multi-byte emoji characters
+        const chars = [...fullMessage];
+
+        chars.forEach((char, index) => {
             if (char === "\n") {
                 container.appendChild(document.createElement('br'));
             } else {
@@ -586,12 +601,12 @@
         }
 
         const data = { m: msg, v: vidId };
-        const encoded = safeBtoa(JSON.stringify(data));
+        const encoded = encodeData(JSON.stringify(data));
         const link = window.location.origin + window.location.pathname + "?l=" + encoded;
         
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('share-url').value = link;
-        saveToHistory(msg.substring(0, 20) + "...", link);
+        saveToHistory(Array.from(msg).slice(0, 20).join('') + "...", link);
     }
 
     function saveToHistory(label, url) {
