@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Letter4U ✨</title>
+    <title>Hi Siopao, Happy Girlfriend Day ✨</title>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         :root { 
             --primary-blue: #0077b6;
             --soft-blue: #ade8f4;
-            --primary-yellow: #fffcd4; 
+            --primary-yellow: #fff3b0;
             --bg-pattern: #fdfae7;
             --text-color: #333; 
+            --accent-pink: #ffafcc;
+            --btn-yes: #ff6b8b;
         }
         
         body { 
@@ -25,6 +27,7 @@
             padding: 20px; 
             color: var(--text-color); 
             overflow-x: hidden;
+            position: relative;
         }
 
         .heart {
@@ -42,26 +45,37 @@
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
+        .sunflower-container {
+            position: fixed;
+            bottom: -10px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
         .container { 
             background: var(--primary-yellow); 
-            padding: 2.5rem 1.5rem; 
+            padding: 2.5rem; 
             border-radius: 30px; 
-            box-shadow: 0 15px 45px rgba(0, 119, 182, 0.25); 
+            box-shadow: 0 10px 40px rgba(0, 119, 182, 0.2); 
             width: 90%; 
             max-width: 450px; 
             text-align: center; 
-            border: 6px solid #fdf2a9;
+            border: 6px solid #f9eb95;
             position: relative;
             z-index: 10;
-            box-sizing: border-box;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        h1::after { content: ' 🎀'; font-family: initial; font-size: 1.5rem; }
         h1 { font-family: 'Pacifico', cursive; color: var(--primary-blue); font-size: 2rem; margin: 0 0 1rem; }
         
         .input-group { margin-bottom: 1rem; text-align: left; }
-        label { color: var(--primary-blue); font-weight: bold; font-size: 0.9rem; display: block; margin-bottom: 5px; }
+        label { color: var(--primary-blue); font-weight: bold; font-size: 0.9rem; }
         
-        textarea, input[type="text"] { 
+        textarea, input { 
             width: 100%; 
             padding: 12px; 
             border: 2px solid var(--soft-blue); 
@@ -69,6 +83,14 @@
             font-family: inherit; 
             box-sizing: border-box; 
             outline: none; 
+            transition: border 0.3s;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
         }
 
         button { 
@@ -79,88 +101,207 @@
             border-radius: 50px; 
             font-weight: 600; 
             cursor: pointer; 
+            transition: all 0.3s ease-out; 
             box-shadow: 0 4px 10px rgba(0, 119, 182, 0.3); 
+        }
+
+        button:hover { 
+            transform: translateY(-3px) scale(1.05); 
+            background: #0096c7; 
+        }
+
+        .btn-yes {
+            background-color: var(--btn-yes);
+        }
+
+        .btn-yes:hover {
+            background-color: #ff4770;
+        }
+
+        .btn-no {
+            background-color: #a0a0a0;
+        }
+
+        .btn-no:hover {
+            background-color: #888888;
         }
         
         .hidden { display: none !important; }
+        
+        /* Smooth Transitions */
+        .fade-out { opacity: 0; transform: scale(0.9); pointer-events: none; }
+        .fade-in { animation: slideUp 0.8s ease forwards; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .letter-content { 
-            font-size: 1.05rem; 
+            font-size: 1.1rem; 
             line-height: 1.8rem;
             white-space: pre-wrap; 
             word-wrap: break-word; 
             padding: 20px; 
             margin: 15px 0; 
             text-align: left;
+            position: relative;
             background: white;
+            background-image: linear-gradient(#e1e1e1 1px, transparent 1px);
+            background-size: 100% 1.8rem;
             border: 2px dashed var(--soft-blue);
             border-radius: 15px;
-            max-height: 250px;
-            overflow-y: auto;
         }
 
-        .char { display: inline; opacity: 0; animation: letter-pop 0.4s forwards; }
-        @keyframes letter-pop { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .char {
+            display: inline;
+            opacity: 0;
+            animation: letter-pop 0.4s forwards;
+        }
 
-        .envelope-wrapper { cursor: pointer; margin: 20px 0; }
-        .envelope-icon { font-size: 80px; display: block; }
+        @keyframes letter-pop {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .uploaded-photo-container {
+        .envelope-wrapper { cursor: pointer; transition: transform 0.4s ease; margin: 20px 0; }
+        .envelope-wrapper:hover { transform: scale(1.1) rotate(2deg); }
+        .envelope-icon { font-size: 80px; display: block; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1)); }
+
+        .history-section { margin-top: 30px; width: 90%; max-width: 450px; background: white; border-radius: 20px; padding: 15px; border: 3px solid var(--soft-blue); z-index: 10; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+        .copy-btn { background: #caf0f8; color: var(--primary-blue); padding: 5px 10px; font-size: 0.7rem; border-radius: 5px;}
+
+        /* Modal for "No" */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            margin: 20px 0;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 5px solid white;
-            box-sizing: border-box;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
         }
-        .uploaded-photo-container img { width: 100%; height: auto; max-height: 350px; object-fit: cover; display: block; }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 320px;
+            width: 85%;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .img-container img {
+            width: 100%;
+            max-width: 180px;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 16px;
+            margin: 10px 0;
+            border: 2px solid var(--soft-blue);
+        }
+
         #player { position: absolute; top: -999px; visibility: hidden; }
     </style>
 </head>
 <body>
 
 <div class="container" id="main-card">
+    <!-- MAKER VIEW -->
     <div id="maker-view">
-        <h1>Kyutie E-Letter Layout &lt;3</h1>
+        <h1>Hi Siopao, Happy Girlfriend Day</h1>
         <div class="input-group">
-            <label>YouTube Link (Background Music):</label>
+            <label>YouTube Link (Music):</label>
             <input type="text" id="yt-link" placeholder="Paste link here...">
-        </div>
-        <div class="input-group">
-            <label>Photo URL Link (From Postimages / Imgur):</label>
-            <input type="text" id="photo-url" placeholder="Paste direct image link (.jpg/.png)...">
         </div>
         <div class="input-group">
             <label>Your Message:</label>
             <textarea id="message" rows="6" placeholder="Write your heart out..."></textarea>
         </div>
         <button onclick="createLink()">Generate Link ✨</button>
-        
         <div id="result-section" class="hidden">
-            <p style="font-size: 0.8rem; margin-top: 15px; color: #023e8a;"><strong>Link Created! You can safely use shorteners now:</strong></p>
+            <p style="font-size: 0.8rem; margin: 10px 0 0; color: #023e8a;"><strong>Link Created!</strong></p>
             <input type="text" id="share-url" readonly onclick="this.select()" style="margin-top: 5px; font-size: 0.7rem;">
         </div>
     </div>
 
-    <div id="envelope-view" class="hidden">
-        <h1>You have a letter!</h1>
-        <div class="envelope-wrapper" onclick="openEnvelope()">
-            <span class="envelope-icon">✉️</span>
-            <p style="color: var(--primary-blue);"><strong>Click envelope to read</strong></p>
+    <!-- CHOICE SCREEN -->
+    <div id="choice-view" class="hidden">
+        <h1>Hi Siopao! 🥟✨</h1>
+        <p style="font-size: 1.1rem; color: var(--primary-blue); font-weight: 600;">Do you want to open the gift?</p>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="handleYes()">Yes! 🎁</button>
+            <button class="btn-no" onclick="handleNo()">No 🥺</button>
         </div>
     </div>
 
-    <div id="letter-view" class="hidden">
-        <h1>A Special Letter</h1>
-        <div class="letter-content" id="display-text"></div>
-        <br>
-        <button id="next-to-photo-btn" class="hidden" onclick="showPhotoScreen()">Watch Photo ✨</button>
+    <!-- ENVELOPE SCREEN -->
+    <div id="envelope-view" class="hidden">
+        <h1>You have a letter!</h1>
+        <div class="envelope-wrapper" id="envelope-anim" onclick="openEnvelope()">
+            <span class="envelope-icon">✉️</span>
+            <p style="color: var(--primary-blue);"><strong>Click the envelope to open</strong></p>
+        </div>
     </div>
 
-    <div id="photo-view" class="hidden">
-        <h1>For You 💛</h1>
-        <div class="uploaded-photo-container">
-            <img id="custom-photo" alt="Special Memory">
+    <!-- LETTER REVEAL SCREEN -->
+    <div id="letter-view" class="hidden">
+        <h1>Happy Girlfriend Day! 💕</h1>
+        <div class="letter-content" id="display-text"></div>
+        <p id="music-msg" style="font-size: 0.8rem; color: #888; margin-top: 5px;"></p>
+        <br>
+        <button onclick="location.href=location.pathname" style="background: var(--soft-blue); color: var(--primary-blue); font-size: 0.8rem;">Make Your Own</button>
+    </div>
+</div>
+
+<!-- SAVED LETTERS LIST -->
+<div id="history-box" class="history-section">
+    <h3 style="margin-top: 0; color: var(--primary-blue);">My Saved Letters 📚</h3>
+    <div id="history-list"></div>
+    <button onclick="clearHistory()" style="background: #ffcfcf; color: #d66; padding: 5px 10px; font-size: 0.6rem; margin-top: 10px; border:none; border-radius:5px; cursor:pointer;">Clear All</button>
+</div>
+
+<!-- SUNFLOWER DECORATION -->
+<div class="sunflower-container">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 95 Q48 70 50 50" stroke="#2d5a27" stroke-width="3" fill="none" />
+        <path d="M50 80 Q65 75 60 65 Q50 70 50 80" fill="#3a7034" />
+        <g fill="#ffc300" stroke="#e6ac00" stroke-width="0.3">
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(0 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(45 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(90 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(135 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(180 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(225 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(270 50 50)" />
+            <ellipse cx="50" cy="35" rx="6" ry="18" transform="rotate(315 50 50)" />
+        </g>
+        <circle cx="50" cy="50" r="10" fill="#4b2c20" />
+    </svg>
+</div>
+
+<!-- BEGGING MODAL -->
+<div id="noModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="color: var(--primary-blue); margin-top:0;">Please? 🥺</h3>
+        <div class="img-container">
+            <img id="begImg" src="https://images.fineartamerica.com/images/artworkimages/mediumlarge/3/sad-hamster-meme-looking-cute-funny-art-funny-designs.jpg" alt="Pleading hamster photo">
+        </div>
+        <p id="begText" style="font-size: 0.9rem;">Are you really sure? Please open it!</p>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="closeModalAndProceed()">Okay fine, Yes! 💖</button>
         </div>
     </div>
 </div>
@@ -172,8 +313,9 @@
     let player;
     let currentVidId = "";
     let fullMessage = "";
-    let finalImageUrl = "";
+    let isPlayerReady = false;
 
+    // Floating Hearts Animation
     function createHeart() {
         const heart = document.createElement('div');
         heart.classList.add('heart');
@@ -185,6 +327,7 @@
     }
     setInterval(createHeart, 400);
 
+    // YouTube API Setup
     function onYouTubeIframeAPIReady() {
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
@@ -195,8 +338,13 @@
                 if(currentVidId) {
                     player = new YT.Player('player', {
                         height: '0', width: '0', videoId: currentVidId,
-                        playerVars: { 'autoplay': 1, 'mute': 1, 'playlist': currentVidId, 'loop': 1, 'controls': 0 },
-                        events: { 'onReady': (e) => { e.target.playVideo(); } }
+                        playerVars: { 'autoplay': 1, 'mute': 1, 'playlist': currentVidId, 'loop': 1, 'enablejsapi': 1 },
+                        events: { 
+                            'onReady': (e) => { 
+                                isPlayerReady = true;
+                                e.target.playVideo(); 
+                            } 
+                        }
                     });
                 }
             } catch(e) {}
@@ -204,35 +352,76 @@
     }
 
     window.onload = function() {
+        displayHistory();
         const params = new URLSearchParams(window.location.search);
         const dataRaw = params.get('l');
         if(dataRaw) {
             document.getElementById('maker-view').classList.add('hidden');
-            document.getElementById('envelope-view').classList.remove('hidden');
+            document.getElementById('history-box').classList.add('hidden');
+            document.getElementById('choice-view').classList.remove('hidden');
             try {
                 const decoded = JSON.parse(decodeURIComponent(escape(atob(dataRaw))));
                 fullMessage = decoded.m;
-                finalImageUrl = decoded.imgUrl;
-                if(finalImageUrl) {
-                    document.getElementById('custom-photo').src = finalImageUrl;
-                }
             } catch(e) { document.getElementById('display-text').innerText = "Broken link! 😿"; }
         }
     }
 
+    function startMusic() {
+        if (player && isPlayerReady) {
+            try {
+                player.unMute();
+                player.setVolume(100);
+                player.playVideo();
+                document.getElementById('music-msg').innerText = "🎵 Music playing...";
+            } catch(e) {
+                console.log("Audio play error:", e);
+            }
+        }
+    }
+
+    function handleNo() {
+        const modal = document.getElementById('noModal');
+        modal.style.display = 'flex';
+    }
+
+    function closeModalAndProceed() {
+        document.getElementById('noModal').style.display = 'none';
+        handleYes();
+    }
+
+    function handleYes() {
+        startMusic(); // Triggers music unmute on user click
+        const choiceView = document.getElementById('choice-view');
+        const envelopeView = document.getElementById('envelope-view');
+        
+        choiceView.classList.add('fade-out');
+        setTimeout(() => {
+            choiceView.classList.add('hidden');
+            envelopeView.classList.remove('hidden');
+            envelopeView.classList.add('fade-in');
+        }, 400);
+    }
+
     function openEnvelope() {
-        document.getElementById('envelope-view').classList.add('hidden');
-        document.getElementById('letter-view').classList.remove('hidden');
-        animateText();
-        if (player && typeof player.playVideo === 'function') { player.unMute(); player.setVolume(100); player.playVideo(); }
+        startMusic(); // Backup trigger in case YouTube loaded late
+        const envelopeView = document.getElementById('envelope-view');
+        const letterView = document.getElementById('letter-view');
+        
+        envelopeView.classList.add('fade-out');
+        
+        setTimeout(() => {
+            envelopeView.classList.add('hidden');
+            letterView.classList.remove('hidden');
+            letterView.classList.add('fade-in');
+            
+            animateText();
+        }, 400);
     }
 
     function animateText() {
         const container = document.getElementById('display-text');
         container.innerHTML = ""; 
-        const chars = fullMessage.split("");
-        
-        chars.forEach((char, index) => {
+        fullMessage.split("").forEach((char, index) => {
             if (char === "\n") {
                 container.appendChild(document.createElement('br'));
             } else {
@@ -243,33 +432,52 @@
                 container.appendChild(span);
             }
         });
-
-        if (finalImageUrl) {
-            setTimeout(() => {
-                document.getElementById('next-to-photo-btn').classList.remove('hidden');
-            }, chars.length * 40 + 200);
-        }
-    }
-
-    function showPhotoScreen() {
-        document.getElementById('letter-view').classList.add('hidden');
-        document.getElementById('photo-view').classList.remove('hidden');
     }
 
     function createLink() {
         const msg = document.getElementById('message').value;
         const yt = document.getElementById('yt-link').value;
-        const imgUrl = document.getElementById('photo-url').value;
-        
         if(!msg) return alert("Write a message! 🌸");
         const vidId = yt.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        
-        const data = { m: msg, v: vidId ? vidId[1] : "", imgUrl: imgUrl };
+        const data = { m: msg, v: vidId ? vidId[1] : "" };
         const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
         const link = window.location.origin + window.location.pathname + "?l=" + encoded;
-        
         document.getElementById('result-section').classList.remove('hidden');
         document.getElementById('share-url').value = link;
+        saveToHistory(msg.substring(0, 20) + "...", link);
+    }
+
+    function saveToHistory(label, url) {
+        let history = JSON.parse(localStorage.getItem('letterHistory') || '[]');
+        history.unshift({ label, url, date: new Date().toLocaleDateString() });
+        localStorage.setItem('letterHistory', JSON.stringify(history));
+        displayHistory();
+    }
+
+    function displayHistory() {
+        let history = JSON.parse(localStorage.getItem('letterHistory') || '[]');
+        const list = document.getElementById('history-list');
+        if(history.length === 0) {
+            list.innerHTML = '<p style="font-size: 0.8rem; color: #aaa;">No letters saved yet...</p>';
+            return;
+        }
+        list.innerHTML = history.map(item => `
+            <div class="history-item">
+                <span><strong>${item.label}</strong></span>
+                <button class="copy-btn" onclick="copyToClipboard('${item.url}')">Copy</button>
+            </div>
+        `).join('');
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => alert("Link copied! 🎀"));
+    }
+
+    function clearHistory() {
+        if(confirm("Delete all saved letters?")) {
+            localStorage.removeItem('letterHistory');
+            displayHistory();
+        }
     }
 </script>
 </body>
